@@ -1,4 +1,6 @@
 from django.contrib import admin
-from .models import Task
+from .models import CustomUser, Task
+
+admin.site.register(CustomUser)
 
 admin.site.register(Task)
