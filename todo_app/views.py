@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,13 +8,14 @@ from .models import CustomUser, Task
 from .serializers import CustomUserSerializer, ToDoSerializer
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import check_password
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser, FormParser
 
 
-class Refresh(APIView):
 
+def Index(self):
+   return HttpResponse('Server is Alive!')
+class Refresh(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refreshToken')
         id = decode_refresh_token(refresh_token)
