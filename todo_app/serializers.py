@@ -21,4 +21,4 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ToDoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['id', 'title', 'completed', 'deleted', 'completion_date', 'description','user']
+        fields = ['id', 'title', 'completed', 'deleted', 'completion_date', 'description']

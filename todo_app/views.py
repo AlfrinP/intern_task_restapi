@@ -15,6 +15,7 @@ from rest_framework.parsers import JSONParser, FormParser
 
 def Index(self):
    return HttpResponse('Server is Alive!')
+
 class Refresh(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refreshToken')
@@ -94,13 +95,13 @@ class Todo(APIView):
         if CustomUser.objects.filter(id=id).exists():
             if pk:
                 try:
-                    todo_obj = Task.objects.get(pk=pk)
+                    todo_obj = Task.objects.get(pk=pk, user=id)
                     serializer = ToDoSerializer(todo_obj)
                     return Response(serializer.data)
                 except Task.DoesNotExist:
                     return Response({'message': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
             else:
-                items = Task.objects.all()
+                items = Task.objects.filter(user=id)
                 serializer = ToDoSerializer(items, many=True)
                 return Response(serializer.data)
         else:
@@ -116,7 +117,7 @@ class Todo(APIView):
                 "user":id,
                 "title":request.POST.get('title'),
                 "description":request.POST.get('description'),
-                "completion_date":request.POST.get('completion_date'),
+                "completion_date":request.POST.get('date'),
             }
             serializer = ToDoSerializer(data=update_data)
             serializer.is_valid(raise_exception=True)
@@ -126,29 +127,23 @@ class Todo(APIView):
             return Response({'message': 'User is not logged in!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
     def put(self, request, pk):
         refresh_token = request.COOKIES.get('refreshToken')
         id = decode_refresh_token(refresh_token)
 
         if CustomUser.objects.filter(id=id).exists():
             try:
-                todo_obj = Task.objects.get(pk=pk)
+                todo_obj = Task.objects.get(pk=pk, user=id)
             except Task.DoesNotExist:
                 return Response({'message': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
-            
-            update_data={
-                "user":id,
-                "title":request.POST.get('title'),
-                "description":request.POST.get('description'),
-                "completion_date":request.POST.get('completion_date'),
-            }
-
-            serializer = ToDoSerializer(instance=todo_obj, data=update_data)
+            serializer = ToDoSerializer(instance=todo_obj, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'message': 'Data Updated Successfully'})
         else:
             return Response({'message': 'User is not logged in!'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
     def patch(self, request, pk):
@@ -157,17 +152,10 @@ class Todo(APIView):
 
         if CustomUser.objects.filter(id=id).exists():
             try:
-                todo_obj = Task.objects.get(pk=pk)
+                todo_obj = Task.objects.get(pk=pk, user=id)
             except Task.DoesNotExist:
                 return Response({'message': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
-            update_data={
-                "user":id,
-                "title":request.POST.get('title'),
-                "description":request.POST.get('description'),
-                "completion_date":request.POST.get('completion_date'),
-            }
-            serializer = ToDoSerializer(
-                instance=todo_obj, data=update_data, partial=True)
+            serializer = ToDoSerializer(instance=todo_obj, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'message': 'Data Updated Successfully'})
@@ -181,10 +169,12 @@ class Todo(APIView):
 
         if CustomUser.objects.filter(id=id).exists():
             try:
-                task = Task.objects.get(pk=pk)
+                task = Task.objects.get(pk=pk, user=id)
                 task.delete()
                 return Response({'message': 'Data Deleted Successfully'})
             except Task.DoesNotExist:
                 return Response({'message': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'message': 'User is not logged in!'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
